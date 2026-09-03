@@ -1,0 +1,30 @@
+-- | Small interpolation helpers for animation and procedural graphics.
+
+-- | Restrict a value to the unit interval.
+def clamp01(x: f32) f32 =
+  if x < 0.0f32 then 0.0f32
+  else if x > 1.0f32 then 1.0f32
+  else x
+
+-- | Interpolate linearly from `a` to `b` by `t`.
+def linear(a: f32, b: f32, t: f32) f32 = a + (b - a) * t
+
+-- | Cubic easing with zero slope at both ends.
+--
+-- The input is clamped, so values outside `[0, 1]` stay at an endpoint.
+def smoothstep(t: f32) f32 =
+  let t = clamp01(t) in
+  t * t * (3.0f32 - 2.0f32 * t)
+
+-- | Quintic easing with zero first and second derivatives at both ends.
+--
+-- The input is clamped, so values outside `[0, 1]` stay at an endpoint.
+def smootherstep(t: f32) f32 =
+  let t = clamp01(t) in
+  t * t * t * (t * (t * 6.0f32 - 15.0f32) + 10.0f32)
+
+-- | Interpolate from `a` to `b` using cubic easing.
+def smooth(a: f32, b: f32, t: f32) f32 = linear(a, b, smoothstep(t))
+
+-- | Interpolate from `a` to `b` using quintic easing.
+def smoother(a: f32, b: f32, t: f32) f32 = linear(a, b, smootherstep(t))

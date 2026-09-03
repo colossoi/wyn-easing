@@ -1,0 +1,34 @@
+-- Compile-time consumer check for the complete public API.
+module Easing = import "pkg:easing"
+
+def all_curves(progress: f32) [24]f32 =
+  [Easing.linear(progress),
+   Easing.quad_in(progress),
+   Easing.quad_out(progress),
+   Easing.quad_in_out(progress),
+   Easing.cubic_in(progress),
+   Easing.cubic_out(progress),
+   Easing.cubic_in_out(progress),
+   Easing.quart_in(progress),
+   Easing.quart_out(progress),
+   Easing.quart_in_out(progress),
+   Easing.quint_in(progress),
+   Easing.quint_out(progress),
+   Easing.quint_in_out(progress),
+   Easing.sine_in(progress),
+   Easing.sine_out(progress),
+   Easing.sine_in_out(progress),
+   Easing.expo_in(progress),
+   Easing.expo_out(progress),
+   Easing.expo_in_out(progress),
+   Easing.circ_in(progress),
+   Easing.circ_out(progress),
+   Easing.circ_in_out(progress),
+   Easing.smoothstep_cubic(progress),
+   Easing.smoothstep_quintic(progress)]
+
+def primitives(progress: f32) [3]f32 =
+  [Easing.clamp01(progress),
+   Easing.lerp(10.0f32, 20.0f32, progress),
+   Easing.interpolate(Easing.cubic_in_out,
+                      10.0f32, 20.0f32, progress)]

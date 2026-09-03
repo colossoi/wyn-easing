@@ -1,30 +1,184 @@
--- | Small interpolation helpers for animation and procedural graphics.
-
--- | Restrict a value to the unit interval.
-def clamp01(x: f32) f32 =
-  if x < 0.0f32 then 0.0f32
-  else if x > 1.0f32 then 1.0f32
-  else x
-
--- | Interpolate linearly from `a` to `b` by `t`.
-def linear(a: f32, b: f32, t: f32) f32 = a + (b - a) * t
-
--- | Cubic easing with zero slope at both ends.
+-- | Easing curves and interpolation primitives for animation and graphics.
 --
--- The input is clamped, so values outside `[0, 1]` stay at an endpoint.
-def smoothstep(t: f32) f32 =
-  let t = clamp01(t) in
+-- Curves accept normalized progress and clamp it to `[0, 1]`. `lerp` is the
+-- lower-level exception: like the conventional graphics primitive, it permits
+-- extrapolation when `amount` is outside that range.
+
+-- | Clamp a value to the closed unit interval `[0, 1]`.
+def clamp01(value: f32) f32 =
+  if value < 0.0f32 then 0.0f32
+  else if value > 1.0f32 then 1.0f32
+  else value
+
+-- | Linearly interpolate from `start` to `end`.
+--
+-- `amount` is deliberately not clamped, so values outside `[0, 1]`
+-- extrapolate beyond the endpoints.
+def lerp(start: f32, end: f32, amount: f32) f32 =
+  start + (end - start) * amount
+
+-- | Interpolate from `start` to `end` after transforming `progress` with a
+-- supplied easing curve.
+--
+-- Built-in curves clamp progress. A custom curve controls its own domain and
+-- may deliberately overshoot or extrapolate.
+def interpolate(easing: f32 -> f32, start: f32, end: f32,
+                progress: f32) f32 =
+  lerp(start, end, easing(progress))
+
+-- | Clamped linear progress.
+def linear(progress: f32) f32 = clamp01(progress)
+
+-- | Quadratic acceleration from rest.
+def quad_in(progress: f32) f32 =
+  let t = clamp01(progress) in
+  t * t
+
+-- | Quadratic deceleration to rest.
+def quad_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  let u = 1.0f32 - t in
+  1.0f32 - u * u
+
+-- | Symmetric quadratic acceleration and deceleration.
+def quad_in_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t < 0.5f32 then
+    2.0f32 * t * t
+  else
+    let u = 2.0f32 - 2.0f32 * t in
+    1.0f32 - u * u / 2.0f32
+
+-- | Cubic acceleration from rest.
+def cubic_in(progress: f32) f32 =
+  let t = clamp01(progress) in
+  t * t * t
+
+-- | Cubic deceleration to rest.
+def cubic_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  let u = 1.0f32 - t in
+  1.0f32 - u * u * u
+
+-- | Symmetric cubic acceleration and deceleration.
+def cubic_in_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t < 0.5f32 then
+    4.0f32 * t * t * t
+  else
+    let u = 2.0f32 - 2.0f32 * t in
+    1.0f32 - u * u * u / 2.0f32
+
+-- | Quartic acceleration from rest.
+def quart_in(progress: f32) f32 =
+  let t = clamp01(progress) in
+  t * t * t * t
+
+-- | Quartic deceleration to rest.
+def quart_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  let u = 1.0f32 - t in
+  1.0f32 - u * u * u * u
+
+-- | Symmetric quartic acceleration and deceleration.
+def quart_in_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t < 0.5f32 then
+    8.0f32 * t * t * t * t
+  else
+    let u = 2.0f32 - 2.0f32 * t in
+    1.0f32 - u * u * u * u / 2.0f32
+
+-- | Quintic acceleration from rest.
+def quint_in(progress: f32) f32 =
+  let t = clamp01(progress) in
+  t * t * t * t * t
+
+-- | Quintic deceleration to rest.
+def quint_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  let u = 1.0f32 - t in
+  1.0f32 - u * u * u * u * u
+
+-- | Symmetric quintic acceleration and deceleration.
+def quint_in_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t < 0.5f32 then
+    16.0f32 * t * t * t * t * t
+  else
+    let u = 2.0f32 - 2.0f32 * t in
+    1.0f32 - u * u * u * u * u / 2.0f32
+
+-- | Sinusoidal acceleration from rest.
+def sine_in(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t == 0.0f32 then 0.0f32
+  else if t == 1.0f32 then 1.0f32
+  else 1.0f32 - f32.cos(t * f32.pi / 2.0f32)
+
+-- | Sinusoidal deceleration to rest.
+def sine_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t == 0.0f32 then 0.0f32
+  else if t == 1.0f32 then 1.0f32
+  else f32.sin(t * f32.pi / 2.0f32)
+
+-- | Symmetric sinusoidal acceleration and deceleration.
+def sine_in_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t == 0.0f32 then 0.0f32
+  else if t == 1.0f32 then 1.0f32
+  else (1.0f32 - f32.cos(f32.pi * t)) / 2.0f32
+
+-- | Exponential acceleration from rest.
+def expo_in(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t == 0.0f32 then 0.0f32
+  else 2.0f32 ** (10.0f32 * t - 10.0f32)
+
+-- | Exponential deceleration to rest.
+def expo_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t == 1.0f32 then 1.0f32
+  else 1.0f32 - 2.0f32 ** (0.0f32 - 10.0f32 * t)
+
+-- | Symmetric exponential acceleration and deceleration.
+def expo_in_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t == 0.0f32 then 0.0f32
+  else if t == 1.0f32 then 1.0f32
+  else if t < 0.5f32 then
+    (2.0f32 ** (20.0f32 * t - 10.0f32)) / 2.0f32
+  else
+    (2.0f32 - 2.0f32 ** (10.0f32 - 20.0f32 * t)) / 2.0f32
+
+-- | Circular acceleration from rest.
+def circ_in(progress: f32) f32 =
+  let t = clamp01(progress) in
+  1.0f32 - f32.sqrt(1.0f32 - t * t)
+
+-- | Circular deceleration to rest.
+def circ_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  let u = t - 1.0f32 in
+  f32.sqrt(1.0f32 - u * u)
+
+-- | Symmetric circular acceleration and deceleration.
+def circ_in_out(progress: f32) f32 =
+  let t = clamp01(progress) in
+  if t < 0.5f32 then
+    let u = 2.0f32 * t in
+    (1.0f32 - f32.sqrt(1.0f32 - u * u)) / 2.0f32
+  else
+    let u = 2.0f32 - 2.0f32 * t in
+    (f32.sqrt(1.0f32 - u * u) + 1.0f32) / 2.0f32
+
+-- | Cubic Hermite smoothstep, `3t² - 2t³` (C1 continuous).
+def smoothstep_cubic(progress: f32) f32 =
+  let t = clamp01(progress) in
   t * t * (3.0f32 - 2.0f32 * t)
 
--- | Quintic easing with zero first and second derivatives at both ends.
---
--- The input is clamped, so values outside `[0, 1]` stay at an endpoint.
-def smootherstep(t: f32) f32 =
-  let t = clamp01(t) in
+-- | Quintic smoothstep, `6t⁵ - 15t⁴ + 10t³` (C2 continuous).
+def smoothstep_quintic(progress: f32) f32 =
+  let t = clamp01(progress) in
   t * t * t * (t * (t * 6.0f32 - 15.0f32) + 10.0f32)
-
--- | Interpolate from `a` to `b` using cubic easing.
-def smooth(a: f32, b: f32, t: f32) f32 = linear(a, b, smoothstep(t))
-
--- | Interpolate from `a` to `b` using quintic easing.
-def smoother(a: f32, b: f32, t: f32) f32 = linear(a, b, smootherstep(t))

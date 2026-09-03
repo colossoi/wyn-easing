@@ -1,0 +1,10 @@
+manifest-version = 1
+
+[package]
+name = "wyn/easing-api-check"
+version = "v0.1.0"
+wyn = "v0.1.0"
+library = "src/lib.wyn"
+
+[dependencies]
+easing = { package = "wyn/easing", version = "v0.2.0", path = "../.." }

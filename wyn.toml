@@ -2,6 +2,6 @@ manifest-version = 1
 
 [package]
 name = "wyn/easing"
-version = "v0.1.0"
+version = "v0.2.0"
 wyn = "v0.1.0"
 library = "src/lib.wyn"
